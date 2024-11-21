@@ -4,7 +4,7 @@ Convert nuScenes raw data to ros1 bag used for slam methods(such as LIO, VIO).
 ## Modified list
 1. Add Raw IMU and Wheel speed data into bag
 2. Add sensors(lidar/camera/radar) enable options(default: only lidar)
-3. Add bags batch processing from given scenes number list(see [converter_to_string_vector.py](scripts/converter_to_string_vector.py))
+3. Add multiple bags processing according to given scenes number list(see [converter_to_string_vector.py](scripts/converter_to_string_vector.py))
 
 ### How to Run
 ```
