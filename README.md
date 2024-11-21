@@ -1,4 +1,6 @@
 # nuScenes2Bag_SLAM
+Convert nuScenes raw data to ros1 bag used for slam methods(such as LIO, VIO). 
+
 ## Modified list
 1. Add Raw IMU and Wheel speed data into bag
 2. Add sensors(lidar/camera/radar) enbale options(default: only lidar)
