@@ -6,9 +6,21 @@ Convert nuScenes raw data to ros1 bag used for slam methods(such as LIO, VIO).
 2. Add sensors(lidar/camera/radar) enable options(default: only lidar)
 3. Add multiple bags processing according to given scenes number list(see [converter_to_string_vector.py](scripts/converter_to_string_vector.py))
 
-### How to Run
+## Data Preparation
+Download [can_bus](https://www.nuscenes.org/nuscenes#download) data and put it into nuscens data dir, then the folder structure is as follows:
 ```
-rosrun nuscenes2bag nuscenes2bag --scenes_list src/nuscenes2bag/scripts/nuscenes_val_split.txt --dataroot /path/to/nuscenes/ --out /path/to/output/ (optional --lidar 1 --cam 1 --radar 1 )
+├── nuscenes
+│   ├── bag
+│   ├── can_bus
+│   ├── maps
+│   ├── samples
+│   ├── sweeps
+│   ├── v1.0-mini
+...
+```
+## How to Run
+```
+rosrun nuscenes2bag nuscenes2bag --scenes_list src/nuscenes2bag/scripts/nuscenes_val_split.txt --dataroot /path/to/nuscenes/ --out /path/to/nuscenes/bag (optional --lidar 1 --cam 1 --radar 1 )
 ```
 
 ##
