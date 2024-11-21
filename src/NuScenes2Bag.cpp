@@ -35,7 +35,10 @@ NuScenes2Bag::convertDirectory(const fs::path& inDatasetPath,
                                const std::string& version,
                                const fs::path& outputRosbagPath,
                                int threadNumber,
-                               boost::optional<int32_t> sceneNumberOpt)
+                               std::vector<uint32_t> sceneNumberVec,
+                               const bool &enable_lidar,
+                               const bool &enable_cam,
+                               const bool &enable_radar)
 {
   if ((threadNumber < 1) || (threadNumber > 64)) {
     std::cout << "Forcing at least one job number (-j1)" << std::endl;
@@ -43,15 +46,22 @@ NuScenes2Bag::convertDirectory(const fs::path& inDatasetPath,
   }
 
   MetaDataReader metaDataReader;
+  CANBusDataReader canBusDataReader;
 
   fs::path metadataPath = inDatasetPath;
   metadataPath /= fs::path(version); // Append sub-directory
   std::cout << "Loading metadata from " + metadataPath.string() + " ..."
             << std::endl;
 
+  fs::path canBusdataPath = inDatasetPath;
+  canBusdataPath /= fs::path("can_bus"); // Append sub-directory
+  std::cout << "Loading canbus data from " + canBusdataPath.string() + " ..."
+            << std::endl;
+
   try {
     // If file is not found, a runtime_error is thrown
     metaDataReader.loadFromDirectory(metadataPath);
+    canBusDataReader.loadFromDirectory(sceneNumberVec, canBusdataPath);
   } catch (const runtime_error& e) {
     std::cerr << "Error: " << e.what() << '\n';
     std::exit(-1);
@@ -75,28 +85,29 @@ NuScenes2Bag::convertDirectory(const fs::path& inDatasetPath,
 
 #if BOOST_VERSION >= 106600
 
-  if (sceneNumberOpt) {
-    auto sceneInfoOpt =
-      metaDataReader.getSceneInfoByNumber(sceneNumberOpt.value());
-    if (sceneInfoOpt) {
-      chosenSceneTokens.push_back(sceneInfoOpt->token);
-    } else {
-      std::cout << "Scene with ID=" << sceneNumberOpt.value() << " not found!"
-                << std::endl;
+  
+  if (!sceneNumberVec.empty()) {
+    for(auto const sceneNumber : sceneNumberVec) {
+      auto sceneInfoOpt = metaDataReader.getSceneInfoByNumber(sceneNumber);
+      if (sceneInfoOpt) {
+        chosenSceneTokens.push_back(sceneInfoOpt->token);
+      } else {
+        std::cout << "Scene with ID=" << sceneNumber << " not found!"
+                  << std::endl;
+      }
     }
   } else {
     chosenSceneTokens = metaDataReader.getAllSceneTokens();
-    ;
   }
 
   for (const auto& sceneToken : chosenSceneTokens) {
     std::unique_ptr<SceneConverter> sceneConverter =
-      std::make_unique<SceneConverter>(metaDataReader);
+      std::make_unique<SceneConverter>(metaDataReader, canBusDataReader);
     sceneConverter->submit(sceneToken, fileProgress);
     SceneConverter* sceneConverterPtr = sceneConverter.get();
     sceneConverters.push_back(std::move(sceneConverter));
     boost::asio::defer(pool, [&, sceneConverterPtr]() {
-      sceneConverterPtr->run(inDatasetPath, outputRosbagPath, fileProgress);
+      sceneConverterPtr->run(inDatasetPath, outputRosbagPath, fileProgress, enable_lidar, enable_cam, enable_radar);
     });
   }
 
@@ -118,18 +129,19 @@ NuScenes2Bag::convertDirectory(const fs::path& inDatasetPath,
 
 #else
 
-  if (sceneNumberOpt) {
-    auto sceneInfoOpt =
-      metaDataReader.getSceneInfoByNumber(sceneNumberOpt.value());
-    if (sceneInfoOpt) {
-      chosenSceneTokens.push_back(sceneInfoOpt->token);
-    } else {
-      std::cout << "Scene with ID=" << sceneNumberOpt.value() << " not found!"
-                << std::endl;
+  if (!sceneNumberVec.empty()) {
+    for(auto const sceneNumber : sceneNumberVec) {
+      auto sceneInfoOpt =
+      metaDataReader.getSceneInfoByNumber(sceneNumber);
+      if (sceneInfoOpt) {
+        chosenSceneTokens.push_back(sceneInfoOpt->token);
+      } else {
+        std::cout << "Scene with ID=" << sceneNumber << " not found!"
+                  << std::endl;
+      }
     }
   } else {
     chosenSceneTokens = metaDataReader.getAllSceneTokens();
-    ;
   }
 
   int counter = 0;
@@ -148,8 +160,9 @@ NuScenes2Bag::convertDirectory(const fs::path& inDatasetPath,
       std::cout << "Converting log " << counter << " of "
                 << chosenSceneTokens.size() << ", " << sceneInfo->name
                 << std::endl;
+      
       sceneConverters.back()->run(
-        inDatasetPath, outputRosbagPath, fileProgress);
+        inDatasetPath, outputRosbagPath, fileProgress, enable_lidar, enable_cam, enable_radar);
     };
     pool.enqueue(fn1);
 

@@ -1,5 +1,15 @@
-# nuScenes2Bag
+# nuScenes2Bag_SLAM
+## Modified list
+1. Add Raw IMU and Wheel speed data into bag
+2. Add sensors(lidar/camera/radar) enbale options(default: only lidar)
+3. Add batch bags processing from given scenes number list(see [converter_to_string_vector.py](scripts/converter_to_string_vector.py))
 
+### How to Run
+```
+rosrun nuscenes2bag nuscenes2bag --scenes_list src/nuscenes2bag/scripts/nuscenes_val_split.txt --dataroot /path/to/nuscenes/ --out /path/to/output/ (optional --lidar 1 --cam 1 --radar 1 )
+```
+
+## Origin README
  - Ubuntu 18.04 Melodic: ![](https://github.com/clynamen/nuscenes2bag/workflows/ubuntu_1804_melodic/badge.svg)
  - Ubuntu 16.04 Kinetic: ![](https://github.com/clynamen/nuscenes2bag/workflows/ubuntu_1604_kinetic/badge.svg)
 

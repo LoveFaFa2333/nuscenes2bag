@@ -51,6 +51,8 @@ find_package(PCL REQUIRED COMPONENTS common io)
 
 set(SRCS
     src/EgoPoseConverter.cpp
+    src/IMUDataConverter.cpp
+    src/VehInfoConverter.cpp
     src/ImageDirectoryConverter.cpp
     src/LidarDirectoryConverter.cpp
     src/LidarDirectoryConverterXYZIR.cpp
@@ -58,6 +60,7 @@ set(SRCS
     src/NuScenes2Bag.cpp
     src/FileProgress.cpp
     src/MetaDataReader.cpp
+    src/CANBusDataReader.cpp
     src/MetaData.cpp
     src/SceneConverter.cpp
     src/utils.cpp)
